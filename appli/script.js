@@ -8,6 +8,8 @@ function main() {
 	feedTest.addArticle(articleTest);
 	feedTest.display();
 	
+	feedTest.extractRssFrom("assets/RSSTest.xml");
+	
 }
 
 
@@ -28,7 +30,6 @@ function RssArticle(title,linkTag,description,pubDate,media)
 		{
 			htmlCode+="<h2>"
 			if(linkTag!==""){htmlCode+="<a href='"+this.linkTag+"'>";}
-			console.log(htmlCode);
 			htmlCode+=this.title;
 			if(linkTag!==""){htmlCode+="</a>";}
 			if(this.pubDate!==""){htmlCode+="<span class='articleDate'> - "+this.pubDate+"</span>";}
@@ -78,7 +79,30 @@ function RssFeed(title,linkTag,description)
 			document.getElementById("rssFeed").innerHTML += "<div class='row'><div class='col-md-2'></div><div class='feedElem col-md-8'>"+article.buildHtmlDisplay()+"</div></div>";
 		}
 		
+	}
+	
+	
+	this.extractRssFrom = function(fileUrl)
+	{
+		var req = new XMLHttpRequest();
+		req.open("GET",fileUrl);
+		req.onreadystatechange = function() {
+			if(req.readyState === 4)
+			{
+				if(req.status === 200)
+				{
+					var rssContent=req.responseXML;
+					console.log(rssContent.getElementsByTagName("title")[0].textContent);
+				}
+				else
+				{
+					console.log("failed");
+				}
+			}
 		
+		}
+	
+		req.send();
 	}
 	
 }
