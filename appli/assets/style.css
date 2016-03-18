@@ -1,0 +1,21 @@
+.articleDate {
+	font-size : 0.5em;
+}
+
+#rssHeader h2 a {
+	text-decoration : none;
+}
+
+body {
+	text-align : center;
+}
+
+.feedElem p {
+	margin-top : 4vh;
+	text-align : justify;
+}
+
+
+#rssFeed h2 a {
+	text-decoration : none;
+}
