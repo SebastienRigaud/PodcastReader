@@ -1,3 +1,13 @@
+#fluxContainer{
+	display : none;
+}
+
+#loading
+{
+	display : none;
+	margin-top : 6vh;
+}
+
 .articleDate {
 	font-size : 0.5em;
 }
@@ -5,6 +15,12 @@
 #feedAdressPrompter {
 	margin-top : 3vh;
 }
+
+
+#urlErrorReport {
+	display : none;
+}
+
 
 #feedAdressPrompter * {
 	margin-top : 2vh;

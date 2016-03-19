@@ -5,10 +5,35 @@ function main() {
 
 	var feedTest = new RssFeed();
 	
-	document.getElementById("feedAdressPrompter").style.display = "none";
+	document.getElementById("submitUrl").addEventListener("click",function(){
+		openFeed(document.getElementById("feedUrl").value)
+	});
 	
-	feedTest.extractRssFrom("https://crossorigin.me/http://radiofrance-podcast.net/podcast09/rss_11591.xml");
+	//feedTest.extractRssFrom("https://crossorigin.me/http://radiofrance-podcast.net/podcast09/rss_11591.xml");
 	
+}
+
+function validUrl(UrlTest) //Function taken from : http://memo-web.fr/categorie-javascript-228.php
+{
+ 
+   var regexp = new RegExp("^((http|https):\/\/){1}(www[.])?([a-zA-Z0-9]|-)+([.][a-zA-Z0-9(-|\/|=|?)?]+)+$");
+   
+  return regexp.test(UrlTest);
+}
+
+function openFeed(feedUrl)
+{
+	if(!validUrl(feedUrl))
+	{
+		document.getElementById("urlErrorReport").style.display = "block";
+	}
+	else
+	{
+		document.getElementById("feedAdressPrompter").style.display = "none";
+		document.getElementById("loading").style.display = "block";
+		var feed = new RssFeed();
+		feed.extractRssFrom(feedUrl);
+	}
 }
 
 
@@ -19,7 +44,7 @@ function RssArticle()
 	this.description="";
 	this.pubDate="";
 	this.media="";
-
+	
 	
 	this.buildHtmlDisplay = function()
 	{
@@ -76,9 +101,17 @@ function RssArticle()
 function RssFeed()
 {
 	this.feed = new Array();
+	this.displayOffset = 0;
 	this.title = "";
 	this.linkTag = "";
 	this.description = "";
+	
+	var objectReference = this;
+	
+	document.getElementById("olderButton").addEventListener("click",function(){objectReference.displayOlder();});
+	document.getElementById("newerButton").addEventListener("click",function(){objectReference.displayNewer();});
+	document.getElementById("newerButton").disabled=true;
+	document.getElementById("olderButton").disabled=false;
 	
 	
 	this.addArticle = function(article)
@@ -86,27 +119,69 @@ function RssFeed()
 		this.feed.push(article);
 	}
 	
+	
 	this.display = function()
 	{
+		console.log(this.displayOffset);
 		document.getElementById("rssHeader").innerHTML = "<div class='row'><div class='col-md-2'></div><div class='col-md-8'><h1><a href='"+this.linkTag+"'>"+this.title+"</a></h1></div></div>";
 		document.getElementById("rssHeader").innerHTML += "<div class='row'><div class='col-md-2'></div><div class='col-md-8'><p id='feedDescription'>"+this.description+"</p></div></div>";
 		
 		document.getElementById("rssFeed").innerHTML = "";
-		for(var article of this.feed)
+		for(var i=this.displayOffset;i<this.displayOffset+10;i++)
 		{
-			document.getElementById("rssFeed").innerHTML += "<div class='row'><div class='col-md-2'></div><div class='feedElem col-md-8'>"+article.buildHtmlDisplay()+"</div></div>";
+			
+			if(this.feed[i]!=null)
+			{
+				document.getElementById("rssFeed").innerHTML += "<div class='row'><div class='col-md-2'></div><div class='feedElem col-md-8'>"+this.feed[i].buildHtmlDisplay()+"</div></div>";
+			}
 		}
+				
+		document.getElementById("fluxContainer").style.display = "block";
+		document.getElementById("loading").style.display = "none";
 		
 	}
+		
+	this.displayOlder = function()
+	{
+		if(this.displayOffset+10<this.feed.length)
+		{
+			this.displayOffset += 10;
+			this.display();
+			document.getElementById("newerButton").disabled=false;
+			
+		}
+		if(this.displayOffset+11>this.feed.length)
+		{
+
+			console.log("Offset : "+this.displayOffset+" Array Length : "+this.feed.length+" Test de la bite : "+(this.displayOffset+11>this.feed.length));
+			document.getElementById("olderButton").disabled=true;
+		}
+	}
+	
+	this.displayNewer = function()
+	{
+		if(this.displayOffset-10>=0)
+		{
+			this.displayOffset -= 10;
+			this.display();
+			document.getElementById("olderButton").disabled=false;
+		}
+		if(this.displayOffset-20<0)
+		{
+			document.getElementById("newerButton").disabled=true;
+		}
+	}
+
+	
 	
 	this.extractRssFrom = function(fileUrl)
 	{
 		var req = new XMLHttpRequest();
-		req.open("GET",fileUrl);
+		req.open("GET","https://crossorigin.me/"+fileUrl);
 		
 		
 		
-		var objectReference = this;
+		// var objectReference = this;
 		
 		req.onreadystatechange = function() {
 			 if(req.readyState === 4)
@@ -144,14 +219,10 @@ function RssFeed()
 				var article = new RssArticle()
 				article.articleUpdateFromXML(elem);
 				this.addArticle(article);
-				i++;
-				if(i>20)
-				{
-					break;
-				}
 			}
 			
-			this.display();
+			this.display(0);
+			
 		}
 	}
 	
