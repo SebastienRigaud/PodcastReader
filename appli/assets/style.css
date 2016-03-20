@@ -2,6 +2,16 @@
 	display : none;
 }
 
+#buttonsContainer button {
+	position : fixed;
+	font-size : 8em;
+	margin-top : 20vh;
+	padding-bottom : 2vh;
+	
+}
+
+
+
 #loading
 {
 	display : none;
@@ -39,6 +49,9 @@ body {
 	text-align : justify;
 }
 
+#rssFeed {
+	margin-top : 5vh;
+}
 
 #rssFeed h2 a {
 	text-decoration : none;

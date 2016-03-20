@@ -3,14 +3,16 @@ window.addEventListener("load", main);
 function main() {
 
 
-	var feedTest = new RssFeed();
 	
 	document.getElementById("submitUrl").addEventListener("click",function(){
-		openFeed(document.getElementById("feedUrl").value)
+		location.hash=document.getElementById("feedUrl").value;
+		location.reload(true);		
 	});
-	
-	//feedTest.extractRssFrom("https://crossorigin.me/http://radiofrance-podcast.net/podcast09/rss_11591.xml");
-	
+
+	if(location.hash!="")
+	{
+		openFeed(location.hash.substring(1))
+	}
 }
 
 function validUrl(UrlTest) //Function taken from : http://memo-web.fr/categorie-javascript-228.php
@@ -44,7 +46,6 @@ function RssArticle()
 	this.description="";
 	this.pubDate="";
 	this.media="";
-	
 	
 	this.buildHtmlDisplay = function()
 	{
@@ -105,13 +106,15 @@ function RssFeed()
 	this.title = "";
 	this.linkTag = "";
 	this.description = "";
+	this.currendMediaPlaying = null;
 	
 	var objectReference = this;
-	
+			
 	document.getElementById("olderButton").addEventListener("click",function(){objectReference.displayOlder();});
 	document.getElementById("newerButton").addEventListener("click",function(){objectReference.displayNewer();});
 	document.getElementById("newerButton").disabled=true;
 	document.getElementById("olderButton").disabled=false;
+	
 	
 	
 	this.addArticle = function(article)
@@ -122,7 +125,6 @@ function RssFeed()
 	
 	this.display = function()
 	{
-		console.log(this.displayOffset);
 		document.getElementById("rssHeader").innerHTML = "<div class='row'><div class='col-md-2'></div><div class='col-md-8'><h1><a href='"+this.linkTag+"'>"+this.title+"</a></h1></div></div>";
 		document.getElementById("rssHeader").innerHTML += "<div class='row'><div class='col-md-2'></div><div class='col-md-8'><p id='feedDescription'>"+this.description+"</p></div></div>";
 		
@@ -139,6 +141,24 @@ function RssFeed()
 		document.getElementById("fluxContainer").style.display = "block";
 		document.getElementById("loading").style.display = "none";
 		
+		var audios = document.getElementsByTagName("audio");
+		
+		for(var y=0;y<audios.length;y++)
+		{
+			audios[y].addEventListener("play",function(){
+				if(objectReference.currentMediaPlaying!=null){objectReference.currentMediaPlaying.pause();}
+				objectReference.currentMediaPlaying=audios[y];
+				
+				console.log(audios[y-1]);
+				});
+		}
+		
+		var videos = document.getElementsByTagName("video");
+		for(var elem of videos)
+		{
+			elem.addEventListener("playing",function(){objectReference.playMedia(elem);});
+		}
+		
 	}
 		
 	this.displayOlder = function()
@@ -150,10 +170,9 @@ function RssFeed()
 			document.getElementById("newerButton").disabled=false;
 			
 		}
-		if(this.displayOffset+11>this.feed.length)
+		
+		if(this.displayOffset+10>this.feed.length)
 		{
-
-			console.log("Offset : "+this.displayOffset+" Array Length : "+this.feed.length+" Test de la bite : "+(this.displayOffset+11>this.feed.length));
 			document.getElementById("olderButton").disabled=true;
 		}
 	}
@@ -166,10 +185,11 @@ function RssFeed()
 			this.display();
 			document.getElementById("olderButton").disabled=false;
 		}
-		if(this.displayOffset-20<0)
+		if(this.displayOffset-10<0)
 		{
 			document.getElementById("newerButton").disabled=true;
 		}
+		
 	}
 
 	
@@ -179,9 +199,6 @@ function RssFeed()
 		var req = new XMLHttpRequest();
 		req.open("GET","https://crossorigin.me/"+fileUrl);
 		
-		
-		
-		// var objectReference = this;
 		
 		req.onreadystatechange = function() {
 			 if(req.readyState === 4)
@@ -210,7 +227,7 @@ function RssFeed()
 			this.linkTag=xmlInput.getElementsByTagName("link")[0].textContent;
 			this.description=xmlInput.getElementsByTagName("description")[0].textContent;
 		
-			articlesList = xmlInput.getElementsByTagName("item");
+			var articlesList = xmlInput.getElementsByTagName("item");
 			
 			var i=0;
 			
@@ -224,6 +241,22 @@ function RssFeed()
 			this.display(0);
 			
 		}
+	}
+	
+	this.playMedia = function()
+	{
+		var audios = document.getElementsByTagName("audio");
+		for(var elem of audios)
+		{
+			elem.pause();
+		}
+		
+		var videos = document.getElementsByTagName("video");
+		for(var elem of videos)
+		{
+			elem.pause();
+		}
+		
 	}
 	
 	
