@@ -45,7 +45,9 @@ function RssArticle()
 	this.linkTag="";
 	this.description="";
 	this.pubDate="";
-	this.media="";
+	this.mediaUrl="";
+	this.mediaType="";
+	this.mediaId=0;
 	
 	this.buildHtmlDisplay = function()
 	{
@@ -65,7 +67,16 @@ function RssArticle()
 		
 		if(this.media!=="")
 		{
-			htmlCode+=this.media;
+			var mediaHtml =	"<audio controls preload='none' src='"+
+							this.mediaUrl+
+							"' type='"+
+							this.mediaType+
+							"' id='"+
+							"media"+this.mediaId+
+							"'>Your browser do not support HTML5 audio tag :(</audio>";
+			
+		
+			htmlCode+=mediaHtml;
 		}
 		
 		if(this.description!=="")
@@ -77,8 +88,9 @@ function RssArticle()
 		return htmlCode;
 	}
 	
-	this.articleUpdateFromXML = function(xmlInput)
+	this.articleUpdateFromXML = function(xmlInput,mediaId)
 	{
+		this.mediaId=mediaId;
 		if(xmlInput.getElementsByTagName("title")[0]!=null){this.title=xmlInput.getElementsByTagName("title")[0].textContent;}
 		if(xmlInput.getElementsByTagName("link")[0]!=null){this.linkTag=xmlInput.getElementsByTagName("link")[0].textContent;}
 		if(xmlInput.getElementsByTagName("description")[0]!=null){this.description=xmlInput.getElementsByTagName("description")[0].textContent;}
@@ -86,15 +98,29 @@ function RssArticle()
 		
 		if(xmlInput.getElementsByTagName("enclosure")[0]!=null)
 		{
-			this.media=	"<audio controls preload='none' src='"+
-						xmlInput.getElementsByTagName("enclosure")[0].getAttribute("url")+
-						"' type='"+
-						xmlInput.getElementsByTagName("enclosure")[0].getAttribute("type")+
-						"'>Your browser do not support HTML5 audio tag :(</audio>";
-			
-		
+			this.mediaUrl=xmlInput.getElementsByTagName("enclosure")[0].getAttribute("url");
+			this.mediaType=xmlInput.getElementsByTagName("enclosure")[0].getAttribute("type");
 		}
 		
+	}
+	
+	this.attachPlayEvent = function()
+	{
+		document.getElementById("media"+this.mediaId).addEventListener("play",function(){
+			var audios = document.getElementsByTagName("audio");
+			for(var elem of audios)
+			{
+				if(elem!=this){elem.pause();}
+			}
+			
+			var videos = document.getElementsByTagName("video");
+			for(var elem of videos)
+			{
+				if(elem!=this){elem.pause();}
+			}
+			
+			
+		});
 	}
 }
 
@@ -141,16 +167,15 @@ function RssFeed()
 		document.getElementById("fluxContainer").style.display = "block";
 		document.getElementById("loading").style.display = "none";
 		
-		var audios = document.getElementsByTagName("audio");
 		
-		for(var y=0;y<audios.length;y++)
+		
+		for(var i=0;i<10;i++)
 		{
-			audios[y].addEventListener("play",function(){
-				if(objectReference.currentMediaPlaying!=null){objectReference.currentMediaPlaying.pause();}
-				objectReference.currentMediaPlaying=audios[y];
-				
-				console.log(audios[y-1]);
-				});
+			var id=i+this.displayOffset;
+			if(document.getElementById("media"+id)!=null)
+			{
+				this.feed[id].attachPlayEvent();
+			}
 		}
 		
 		var videos = document.getElementsByTagName("video");
@@ -229,13 +254,14 @@ function RssFeed()
 		
 			var articlesList = xmlInput.getElementsByTagName("item");
 			
-			var i=0;
+			var mediaId=0;
 			
 			for(var elem of articlesList)
 			{
 				var article = new RssArticle()
-				article.articleUpdateFromXML(elem);
+				article.articleUpdateFromXML(elem,mediaId);
 				this.addArticle(article);
+				mediaId++;
 			}
 			
 			this.display(0);
