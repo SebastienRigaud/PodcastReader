@@ -132,7 +132,6 @@ function RssFeed()
 	this.title = "";
 	this.linkTag = "";
 	this.description = "";
-	this.currendMediaPlaying = null;
 	
 	var objectReference = this;
 			
